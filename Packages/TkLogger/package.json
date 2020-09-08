@@ -1,0 +1,14 @@
+{
+  "name": "ca.tekly.tklogger",
+  "version": "0.0.3",
+  "displayName": "Tekly Logger",
+  "description": "Logging",
+  "unity": "2019.1",
+  "author": {
+    "name": "Matt King",
+    "email": "matt@tekly.ca"
+  },
+  "dependencies": {
+    "ca.tekly.utility": "0.0.1"
+  }
+}

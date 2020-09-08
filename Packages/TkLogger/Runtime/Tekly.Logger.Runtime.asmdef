@@ -1,0 +1,15 @@
+{
+    "name": "Tekly.Logger.Runtime",
+    "references": [
+        "GUID:df295595e9793e242a0c82ac0fc8280a"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
