@@ -1,6 +1,6 @@
 {
-  "name": "ca.tekly.tklogger",
-  "version": "0.0.3",
+  "name": "ca.tekly.logger",
+  "version": "0.0.2",
   "displayName": "Tekly Logger",
   "description": "Logging",
   "unity": "2019.1",

@@ -1,16 +1,23 @@
 {
   "dependencies": {
-    "ca.tekly.tklogger": {
+    "ca.tekly.logger": {
       "version": "file:TkLogger",
       "depth": 0,
       "source": "embedded",
       "dependencies": {
-        "ca.tekly.tkutility": "0.0.1"
+        "ca.tekly.utility": "0.0.1"
       }
     },
     "ca.tekly.tkutility": {
       "version": "0.0.1",
       "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://registry.npmjs.org"
+    },
+    "ca.tekly.utility": {
+      "version": "0.0.1",
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://registry.npmjs.org"
