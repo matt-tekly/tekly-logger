@@ -13,16 +13,6 @@ namespace Tekly.Logging
         private int m_currentFrame;
         
         private readonly ThreadLocal<StringBuilder> m_stringBuilders = new ThreadLocal<StringBuilder>(() => new StringBuilder(512));
-        private readonly ThreadLocal<object[]> m_objects = new ThreadLocal<object[]>(() => new object[4]);
-        private readonly MethodInfo m_logMethod;
-        
-        public UnityLogDestination()
-        {
-            var debugLogHandler = typeof(Texture2D).Assembly.GetType("UnityEngine.DebugLogHandler");
-            m_logMethod = debugLogHandler.GetMethod("Internal_Log", BindingFlags.Static | BindingFlags.NonPublic);
-            
-            Assert.IsNotNull(m_logMethod, "UnityLogDestination failed to find method UnityEngine.DebugLogHandler.Internal_Log");
-        }
         
         public void LogMessage(TkLogMessage message)
         {
@@ -39,14 +29,8 @@ namespace Tekly.Logging
             sb.AppendFormat("\n\n{0}\u2004", message.StackTrace);
             
             var logType = LevelToType(message.Level);
-
-            var objectArray = m_objects.Value;
-            objectArray[0] = logType;
-            objectArray[1] = LogOption.NoStacktrace;
-            objectArray[2] = sb.ToString();
-            objectArray[3] = context;
             
-            m_logMethod.Invoke(null, objectArray);
+            Debug.LogFormat(logType, LogOption.NoStacktrace, context, sb.ToString());
         }
         
         public void Update()

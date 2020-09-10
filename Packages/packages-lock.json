@@ -8,13 +8,6 @@
         "ca.tekly.utility": "0.0.1"
       }
     },
-    "ca.tekly.tkutility": {
-      "version": "0.0.1",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://registry.npmjs.org"
-    },
     "ca.tekly.utility": {
       "version": "0.0.1",
       "depth": 1,

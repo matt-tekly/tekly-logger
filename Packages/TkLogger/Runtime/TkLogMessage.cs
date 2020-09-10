@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using UnityEngine.Assertions;
 
 namespace Tekly.Logging
 {
@@ -12,7 +13,7 @@ namespace Tekly.Logging
         public string LoggerName;
         public string LoggerFullName;
         public string Message;
-        public List<TkLogParam> Params;
+        public TkLogParam[] Params;
         public string Timestamp;
         public string StackTrace;
 
@@ -27,8 +28,8 @@ namespace Tekly.Logging
             StackTrace = stackTrace;
             
             if (TkLogger.CommonFields.Count > 0) {
-                Params = new List<TkLogParam>();
-                CopyCommonFields();
+                Params = new TkLogParam[TkLogger.CommonFields.Count];
+                CopyCommonFields(0);
             }
         }
         
@@ -38,11 +39,32 @@ namespace Tekly.Logging
             LoggerName = loggerName;
             LoggerFullName = loggerFullName;
             Message = message;
-            Params = logParams;
+            Params = new TkLogParam[logParams.Count + TkLogger.CommonFields.Count];
             Timestamp = DateTime.UtcNow.ToString(TkLoggerConstants.TIME_FORMAT);
             StackTrace = stackTrace;
-            
-            CopyCommonFields();
+
+            for (var index = 0; index < logParams.Count; index++) {
+                Params[index] = logParams[index];
+            }
+
+            CopyCommonFields(logParams.Count);
+        }
+        
+        public TkLogMessage(TkLogLevel level, string loggerName, string loggerFullName, string message, string stackTrace, TkLogParam[] logParams)
+        {
+            Level = level;
+            LoggerName = loggerName;
+            LoggerFullName = loggerFullName;
+            Message = message;
+            Params = new TkLogParam[logParams.Length + TkLogger.CommonFields.Count];
+            Timestamp = DateTime.UtcNow.ToString(TkLoggerConstants.TIME_FORMAT);
+            StackTrace = stackTrace;
+
+            for (var index = 0; index < logParams.Length; index++) {
+                Params[index] = logParams[index];
+            }
+
+            CopyCommonFields(logParams.Length);
         }
         
         public TkLogMessage(TkLogLevel level, string loggerName, string loggerFullName, string message, string stackTrace, params object[] logParams)
@@ -51,11 +73,11 @@ namespace Tekly.Logging
             LoggerName = loggerName;
             LoggerFullName = loggerFullName;
             Message = message;
-            Params = TkLogParams.Create(logParams).Params;
+            Params = TkLogParam.CreateReserve(TkLogger.CommonFields.Count, logParams);
             Timestamp = DateTime.UtcNow.ToString(TkLoggerConstants.TIME_FORMAT);
             StackTrace = stackTrace;
             
-            CopyCommonFields();
+            CopyCommonFields(logParams.Length / 2);
         }
 
         public void Print(StringBuilder sb)
@@ -75,10 +97,12 @@ namespace Tekly.Logging
         /// Copying the common fields when the message is created so that we get the fields as they were when the
         /// log message was created.
         /// </summary>
-        private void CopyCommonFields()
+        private void CopyCommonFields(int startIndex)
         {
+            var index = 0;
             foreach (var commonField in TkLogger.CommonFields) {
-                Params.Add(new TkLogParam(commonField.Key, commonField.Value));
+                Params[startIndex + index] = new TkLogParam(commonField.Key, commonField.Value);
+                index++;
             }
         }
 
@@ -103,34 +127,7 @@ namespace Tekly.Logging
             sb.Append("}");
         }
     }
-
-    public struct TkLogParams
-    {
-        public List<TkLogParam> Params;
-
-        public TkLogParams Add(string id, object value)
-        {
-            Params.Add(new TkLogParam(id, value.ToString()));
-            return this;
-        }
-
-        public static TkLogParams Create()
-        {
-            var tkLogParams = new TkLogParams {Params = new List<TkLogParam>()};
-            return tkLogParams;
-        }
-
-        public static TkLogParams Create(params object[] logParams)
-        {
-            var tkLogParams = new TkLogParams {Params = new List<TkLogParam>()};
-            for (var index = 0; index < logParams.Length; index += 2) {
-                tkLogParams.Add(logParams[index].ToString(), logParams[index + 1]);
-            }
-
-            return tkLogParams;
-        }
-    }
-
+    
     [Serializable]
     public struct TkLogParam
     {
@@ -141,6 +138,24 @@ namespace Tekly.Logging
         {
             Id = id;
             Value = value;
+        }
+        
+        public static TkLogParam[] Create(params object[] logParams)
+        {
+            return CreateReserve(0, logParams);
+        }
+        
+        public static TkLogParam[] CreateReserve(int reserve, object[] logParams)
+        {
+            Assert.IsTrue((logParams.Length % 2) == 0);
+            
+            var tkLogParams = new TkLogParam[reserve + (logParams.Length / 2)];
+            
+            for (var index = 0; index < logParams.Length; index += 2) {
+                tkLogParams[index / 2] = new TkLogParam(logParams[index].ToString(), logParams[index + 1].ToString());
+            }
+
+            return tkLogParams;
         }
     }
 }

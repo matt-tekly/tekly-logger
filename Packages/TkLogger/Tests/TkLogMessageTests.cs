@@ -9,12 +9,13 @@ namespace Tekly.Logging.Tests
         [Test]
         public void TestPrint()
         {
-            var logParams = TkLogParams.Create("a", 1, "b", 2, "c", "3");
-            var logMessage = new TkLogMessage(TkLogLevel.Info, "Test", "Test", "Test {a} {b} {c}", StackTraceUtility.ExtractStackTrace(), logParams.Params);
+            TkLogger.SetValue("g_user", "Mr User");
+            var logParams = TkLogParam.Create("a", 1, "b", 2, "c", "3");
+            var logMessage = new TkLogMessage(TkLogLevel.Info, "Test", "Test", "Test {a} {b} {c} {g_user}", StackTraceUtility.ExtractStackTrace(), logParams);
             
             var sb = new StringBuilder();
             logMessage.Print(sb);
-            Assert.That(sb.ToString(), Is.EqualTo("Test 1 2 3"));
+            Assert.That(sb.ToString(), Is.EqualTo("Test 1 2 3 Mr User"));
         }
     }
 }
