@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using UnityEngine;
-using UnityEngine.Assertions;
 using Object = UnityEngine.Object;
 
 namespace Tekly.Logging
@@ -11,9 +9,9 @@ namespace Tekly.Logging
     public class UnityLogDestination : ITkLogDestination
     {
         private int m_currentFrame;
-        
+
         private readonly ThreadLocal<StringBuilder> m_stringBuilders = new ThreadLocal<StringBuilder>(() => new StringBuilder(512));
-        
+
         public void LogMessage(TkLogMessage message)
         {
             LogMessage(message, null);
@@ -23,21 +21,48 @@ namespace Tekly.Logging
         {
             var sb = m_stringBuilders.Value;
             sb.Clear();
-            
+
             sb.AppendFormat("[{0}] [{1}] ", m_currentFrame, message.LoggerName);
             message.Print(sb);
-            sb.AppendFormat("\n\n{0}\u2004", message.StackTrace);
+
+            sb.Append("\n\n");
+
+            bool foundException = false;
+
+            if (message.Params != null) {
+                foreach (var messageParam in message.Params) {
+                    if (string.CompareOrdinal(messageParam.Id, TkLoggerConstants.EXCEPTION_MESSAGE_KEY) == 0) {
+                        foundException = true;
+                        sb.Append(messageParam.Value);
+                    }
+
+                    if (string.CompareOrdinal(messageParam.Id, TkLoggerConstants.EXCEPTION_STACKTRACE_KEY) == 0) {
+                        sb.Append("\n");
+                        sb.Append(messageParam.Value);
+                    }
+                }
+            }
+
+            if (!foundException) {
+                sb.Append(message.StackTrace);
+            }
+
+            sb.Append(TkLoggerConstants.UNITY_LOG_MARKER);
             
-            var logType = LevelToType(message.Level);
+            try {
+                var logType = LevelToType(message.Level);
+                Debug.LogFormat(logType, LogOption.NoStacktrace, context, sb.ToString());
+            } catch (Exception) {
+                Debug.LogError("Exception while trying to log a message. Likely one of its params is not set. Message:\n\n" + sb);    
+            }
             
-            Debug.LogFormat(logType, LogOption.NoStacktrace, context, sb.ToString());
         }
-        
+
         public void Update()
         {
             m_currentFrame = Time.frameCount;
         }
-        
+
         public static LogType LevelToType(TkLogLevel level)
         {
             switch (level) {
@@ -55,7 +80,7 @@ namespace Tekly.Logging
                     throw new ArgumentOutOfRangeException();
             }
         }
-        
+
         public static TkLogLevel TypeToLevel(LogType logType)
         {
             switch (logType) {

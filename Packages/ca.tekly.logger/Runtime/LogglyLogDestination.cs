@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -45,6 +44,21 @@ namespace Tekly.Logging
         {
             LogMessage(message);
         }
+        
+        public void Update()
+        {
+            if (m_messageQueue.Count > 0) {
+                m_timer -= Time.deltaTime;
+                if (m_timer <= 0 && m_operation == null) {
+                    
+                    SendMessageToLoggly();
+                }
+            }
+            
+            if (m_operation != null && m_operation.isDone) {
+                m_operation = null;
+            }
+        }
 
         /// <summary>
         /// Sends messages to Loggly. Each message is converted to JSON and separated by a new line character.
@@ -55,16 +69,18 @@ namespace Tekly.Logging
         {
             m_allJsonBuilder.Clear();
 
-            var first = false;
+            var first = true;
             while (m_messageQueue.TryDequeue(out var logMessage)) {
                 if (!first) {
-                    first = true;
                     m_allJsonBuilder.Append("\n");
                 }
+                
+                first = false;
                 
                 var startIndex = m_allJsonBuilder.Length;
                 logMessage.ToJson(m_allJsonBuilder);
                 
+                m_allJsonBuilder.Replace("\\", "/", startIndex, m_allJsonBuilder.Length - startIndex);
                 m_allJsonBuilder.Replace("\n", "\\n", startIndex, m_allJsonBuilder.Length - startIndex);
             }
 
@@ -77,18 +93,6 @@ namespace Tekly.Logging
             m_operation = request.SendWebRequest();
         }
 
-        public void Update()
-        {
-            if (m_messageQueue.Count > 0) {
-                m_timer -= Time.deltaTime;
-                if (m_timer <= 0 && m_operation == null) {
-                    SendMessageToLoggly();
-                }
-            }
-            
-            if (m_operation != null && m_operation.isDone) {
-                m_operation = null;
-            }
-        }
+       
     }
 }

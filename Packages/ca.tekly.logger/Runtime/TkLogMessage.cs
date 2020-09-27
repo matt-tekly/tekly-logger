@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
 using UnityEngine.Assertions;
 
 namespace Tekly.Logging
@@ -79,6 +78,19 @@ namespace Tekly.Logging
             
             CopyCommonFields(logParams.Length / 2);
         }
+        
+        public TkLogMessage(TkLogLevel level, string loggerName, string loggerFullName, string message, string stackTrace, params (string, object)[] logParams)
+        {
+            Level = level;
+            LoggerName = loggerName;
+            LoggerFullName = loggerFullName;
+            Message = message;
+            Params = TkLogParam.CreateReserve(TkLogger.CommonFields.Count, logParams);
+            Timestamp = DateTime.UtcNow.ToString(TkLoggerConstants.TIME_FORMAT);
+            StackTrace = stackTrace;
+            
+            CopyCommonFields(logParams.Length);
+        }
 
         public void Print(StringBuilder sb)
         {
@@ -140,7 +152,7 @@ namespace Tekly.Logging
             Value = value;
         }
         
-        public static TkLogParam[] Create(params object[] logParams)
+        public static TkLogParam[] Create(params (string, object)[] logParams)
         {
             return CreateReserve(0, logParams);
         }
@@ -153,6 +165,17 @@ namespace Tekly.Logging
             
             for (var index = 0; index < logParams.Length; index += 2) {
                 tkLogParams[index / 2] = new TkLogParam(logParams[index].ToString(), logParams[index + 1].ToString());
+            }
+
+            return tkLogParams;
+        }
+
+        public static TkLogParam[] CreateReserve(int reserve, (string, object)[] logParams)
+        {
+            var tkLogParams = new TkLogParam[reserve + logParams.Length];
+            
+            for (var index = 0; index < logParams.Length; index++) {
+                tkLogParams[index] = new TkLogParam(logParams[index].Item1, logParams[index].Item2.ToString());
             }
 
             return tkLogParams;

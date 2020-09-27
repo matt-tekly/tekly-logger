@@ -1,26 +1,19 @@
 {
   "dependencies": {
-    "ca.tekly.logger": {
-      "version": "file:TkLogger",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "ca.tekly.utility": "0.0.1"
-      }
-    },
-    "ca.tekly.utility": {
-      "version": "0.0.1",
+    "ca.tekly.lifecycles": {
+      "version": "0.0.6",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://registry.npmjs.org"
     },
-    "com.unity.collab-proxy": {
-      "version": "1.2.16",
+    "ca.tekly.logger": {
+      "version": "file:ca.tekly.logger",
       "depth": 0,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.com"
+      "source": "embedded",
+      "dependencies": {
+        "ca.tekly.lifecycles": "0.0.6"
+      }
     },
     "com.unity.ext.nunit": {
       "version": "1.0.0",
@@ -63,13 +56,6 @@
       "dependencies": {
         "com.unity.ugui": "1.0.0"
       },
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.timeline": {
-      "version": "1.2.16",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.ugui": {

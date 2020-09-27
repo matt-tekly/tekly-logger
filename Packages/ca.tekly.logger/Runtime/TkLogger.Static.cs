@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Tekly.Utility.LifeCycles;
+using System.Text;
+using System.Threading;
+using Tekly.LifeCycles;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 using Object = UnityEngine.Object;
 
 namespace Tekly.Logging
@@ -22,17 +23,18 @@ namespace Tekly.Logging
 
         private static readonly Dictionary<Type, TkLogger> s_loggers = new Dictionary<Type, TkLogger>();
         private static readonly object s_lock = new object();
+        private static readonly ThreadLocal<StringBuilder> s_stringBuilders = new ThreadLocal<StringBuilder>(() => new StringBuilder(512));
         
-        public static TkLogger Get<T>(TkLogLevel logLevel = TkLogLevel.Info)
+        public static TkLogger Get<T>()
         {
-            return Get(typeof(T), logLevel);
+            return Get(typeof(T));
         }
 
-        public static TkLogger Get(Type type, TkLogLevel logLevel = TkLogLevel.Info)
+        public static TkLogger Get(Type type)
         {
             lock (s_lock) {
                 if (!s_loggers.TryGetValue(type, out var logger)) {
-                    logger = new TkLogger(type, logLevel);
+                    logger = new TkLogger(type, GlobalMinLogLevel);
                     s_loggers[type] = logger;
                 }
 
@@ -40,14 +42,13 @@ namespace Tekly.Logging
             }
         }
 
-        [RuntimeInitializeOnLoadMethod]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         private static void Initialize()
         {
             s_unityLogDestination = new UnityLogDestination();
-            Application.logMessageReceivedThreaded += HandleLog;
+            Application.logMessageReceivedThreaded += HandleUnityLog;
             LifeCycle.Instance.Update += Update;
         }
-        
         
         private static void Update()
         {
@@ -60,13 +61,13 @@ namespace Tekly.Logging
             }
         }
 
-        private static void HandleLog(string message, string stacktrace, LogType type)
+        private static void HandleUnityLog(string message, string stacktrace, LogType type)
         {
             if (!EnableUnityLogger) {
                 return;
             }
 
-            if (message[message.Length - 1] == '\u2004') {
+            if (message[message.Length - 1] == TkLoggerConstants.UNITY_LOG_MARKER) {
                 return;
             }
 
@@ -85,32 +86,23 @@ namespace Tekly.Logging
         {
             CommonFields.Remove(id);
         }
-
+        
         private static string GetStackTrace(TkLogLevel logLevel)
         {
             if (!EnableStackTrace) {
                 return null;
             }
 
-            var stackTrace = StackTraceUtility.ExtractStackTrace();
-
-            // Find the index where the stack trace frames related logging end.
-            int count = 0;
-            int index;
-
-            for (index = 0; index < stackTrace.Length; index++) {
-                if (stackTrace[index] == '\n') {
-                    count++;
-                    if (count == 3) {
-                        break;
-                    }
-                }
-            }
-
-            // Now trim out the frames related to logging so we get a clean stack trace
-            return stackTrace.Substring(index + 1).Replace("\\", "/");
+            var sb = s_stringBuilders.Value;
+            sb.Clear();
+            
+            StackTraceUtilities.ExtractStackTrace(sb, 4);
+            
+            sb.Replace("\\", "/");
+            
+            return sb.ToString();
         }
-
+        
         private static void LogToDestinations(TkLogMessage message, bool logToUnity = true)
         {
             if (EnableUnityLogger && logToUnity) {

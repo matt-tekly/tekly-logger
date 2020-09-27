@@ -1,11 +1,11 @@
 {
-    "name": "Tekly.Logger.Runtime",
+    "name": "Tekly.Logger",
     "references": [
-        "GUID:df295595e9793e242a0c82ac0fc8280a"
+        "GUID:2b288e27c120d9341a68d06a24c0318f"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
